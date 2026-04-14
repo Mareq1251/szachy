@@ -4,6 +4,11 @@ const gameModeSelect = document.getElementById('game-mode');
 const diffInput = document.getElementById('difficulty');
 const diffLabel = document.getElementById('diff-label');
 
+// Elementy Endgame Screen
+const endgameOverlay = document.getElementById('endgame-overlay');
+const endgameTitle = document.getElementById('endgame-title');
+const endgameMsg = document.getElementById('endgame-msg');
+
 const piecesSymbols = {
     'r': '♜', 'n': '♞', 'b': '♝', 'q': '♛', 'k': '♚', 'p': '♟',
     'R': '♖', 'N': '♘', 'B': '♗', 'Q': '♕', 'K': '♔', 'P': '♙'
@@ -16,8 +21,8 @@ let selectedSquare = null;
 let validMoves = [];
 let isWhiteTurn = true;
 let isBotThinking = false;
+let gameActive = true;
 
-// Funkcja Inicjalizująca - to ona odpowiada za RESET
 function initGame() {
     boardLayout = [
         ['r','n','b','q','k','b','n','r'],
@@ -31,11 +36,15 @@ function initGame() {
     ];
     isWhiteTurn = true;
     isBotThinking = false;
+    gameActive = true;
     selectedSquare = null;
     validMoves = [];
-    if(turnDisplay) turnDisplay.innerText = "Białe";
+    
+    // Reset UI
+    turnDisplay.innerText = "Białe";
+    endgameOverlay.classList.add('hidden'); // Ukryj ekran końca gry
+    
     createBoard();
-    console.log("Gra zresetowana. Tryb:", gameModeSelect.value);
 }
 
 function createBoard() {
@@ -75,9 +84,7 @@ function isKingInCheck(layout, isWhite) {
     let kingPos = null;
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
-            if (layout[r][c] === (isWhite ? 'K' : 'k')) {
-                kingPos = {r, c}; break;
-            }
+            if (layout[r][c] === (isWhite ? 'K' : 'k')) { kingPos = {r, c}; break; }
         }
     }
     if (!kingPos) return false;
@@ -86,8 +93,7 @@ function isKingInCheck(layout, isWhite) {
         for (let c = 0; c < 8; c++) {
             const p = layout[r][c];
             if (p && (p === p.toUpperCase()) !== isWhite) {
-                const moves = getRawMoves(r, c, layout);
-                if (moves.some(m => m.r === kingPos.r && m.c === kingPos.c)) return true;
+                if (getRawMoves(r, c, layout).some(m => m.r === kingPos.r && m.c === kingPos.c)) return true;
             }
         }
     }
@@ -98,15 +104,12 @@ function getLegalMoves(r, c, layout) {
     const rawMoves = getRawMoves(r, c, layout);
     const piece = layout[r][c];
     const isWhite = piece === piece.toUpperCase();
-    
     return rawMoves.filter(m => {
         const temp = layout[m.r][m.c];
-        layout[m.r][m.c] = piece;
-        layout[r][c] = '';
-        const inCheck = isKingInCheck(layout, isWhite);
-        layout[r][c] = piece;
-        layout[m.r][m.c] = temp;
-        return !inCheck;
+        layout[m.r][m.c] = piece; layout[r][c] = '';
+        const check = isKingInCheck(layout, isWhite);
+        layout[r][c] = piece; layout[m.r][m.c] = temp;
+        return !check;
     });
 }
 
@@ -114,8 +117,7 @@ function getRawMoves(r, c, layout) {
     let moves = [];
     const piece = layout[r][c];
     if (!piece) return [];
-    const type = piece.toLowerCase();
-    const isWhite = piece === piece.toUpperCase();
+    const type = piece.toLowerCase(), isWhite = piece === piece.toUpperCase();
     const dirs = {
         'r': [[0,1], [0,-1], [1,0], [-1,0]],
         'b': [[1,1], [1,-1], [-1,1], [-1,-1]],
@@ -140,13 +142,8 @@ function getRawMoves(r, c, layout) {
             let cr = r + d[0], cc = c + d[1];
             while (cr >= 0 && cr < 8 && cc >= 0 && cc < 8) {
                 const target = layout[cr][cc];
-                if (target === '') {
-                    moves.push({r: cr, c: cc});
-                    if (type === 'n' || type === 'k') break;
-                } else {
-                    if ((target === target.toUpperCase()) !== isWhite) moves.push({r: cr, c: cc});
-                    break;
-                }
+                if (target === '') { moves.push({r: cr, c: cc}); if (type === 'n' || type === 'k') break; }
+                else { if ((target === target.toUpperCase()) !== isWhite) moves.push({r: cr, c: cc}); break; }
                 cr += d[0]; cc += d[1];
             }
         });
@@ -155,12 +152,12 @@ function getRawMoves(r, c, layout) {
 }
 
 function handleSquareClick(r, c) {
-    if (isBotThinking) return;
+    if (!gameActive || isBotThinking) return;
     const move = validMoves.find(m => m.r === r && m.c === c);
 
     if (move && selectedSquare) {
         executeMove(selectedSquare[0], selectedSquare[1], r, c);
-        if (gameModeSelect.value === 'pve' && !isWhiteTurn) {
+        if (gameActive && gameModeSelect.value === 'pve' && !isWhiteTurn) {
             isBotThinking = true;
             setTimeout(makeBotMove, 400);
         }
@@ -173,9 +170,7 @@ function handleSquareClick(r, c) {
         validMoves = getLegalMoves(r, c, boardLayout);
         createBoard();
     } else {
-        selectedSquare = null;
-        validMoves = [];
-        createBoard();
+        selectedSquare = null; validMoves = []; createBoard();
     }
 }
 
@@ -184,15 +179,46 @@ function executeMove(fromR, fromC, toR, toC) {
     if (piece.toLowerCase() === 'p' && (toR === 0 || toR === 7)) piece = piece === 'P' ? 'Q' : 'q';
     boardLayout[toR][toC] = piece;
     boardLayout[fromR][fromC] = '';
-    selectedSquare = null;
-    validMoves = [];
+    selectedSquare = null; validMoves = [];
     isWhiteTurn = !isWhiteTurn;
     turnDisplay.innerText = isWhiteTurn ? "Białe" : "Czarne";
     createBoard();
+    checkGameEnd();
+}
+
+// ZAKTUALIZOWANA FUNKCJA KONCA GRY
+function checkGameEnd() {
+    let allMoves = [];
+    for (let r = 0; r < 8; r++) {
+        for (let c = 0; c < 8; c++) {
+            const p = boardLayout[r][c];
+            if (p && (p === p.toUpperCase()) === isWhiteTurn) {
+                allMoves.push(...getLegalMoves(r, c, boardLayout));
+            }
+        }
+    }
+
+    if (allMoves.length === 0) {
+        gameActive = false;
+        const inCheck = isKingInCheck(boardLayout, isWhiteTurn);
+        
+        if (inCheck) {
+            // MAT
+            const winner = isWhiteTurn ? "Czarne" : "Białe";
+            endgameTitle.innerText = "SZACH-MAT!";
+            endgameMsg.innerText = `Wygrywają ${winner}`;
+        } else {
+            // PAT
+            endgameTitle.innerText = "REMIS!";
+            endgameMsg.innerText = "Pat - brak legalnych ruchów.";
+        }
+        
+        // Pokaż overlay po krótkim opóźnieniu dla płynności
+        setTimeout(() => endgameOverlay.classList.remove('hidden'), 300);
+    }
 }
 
 function makeBotMove() {
-    if (isWhiteTurn) return; // Zabezpieczenie przed ruchem bota w turze gracza
     const depth = parseInt(diffInput.value);
     let moves = [];
     for (let r = 0; r < 8; r++) {
@@ -203,49 +229,35 @@ function makeBotMove() {
             }
         }
     }
-
-    if (moves.length === 0) {
-        alert(isKingInCheck(boardLayout, false) ? "Szach-mat! Białe wygrywają." : "Pat!");
-        isBotThinking = false;
-        return;
-    }
+    if (moves.length === 0) { isBotThinking = false; return; }
 
     let bestMove = (depth === 1) ? moves[Math.floor(Math.random() * moves.length)] : null;
-    
     if (!bestMove) {
         let bestVal = Infinity;
         moves.forEach(m => {
-            const temp = boardLayout[m.tr][m.tc];
-            boardLayout[m.tr][m.tc] = boardLayout[m.fr][m.fc];
-            boardLayout[m.fr][m.fc] = '';
+            const t = boardLayout[m.tr][m.tc]; boardLayout[m.tr][m.tc] = boardLayout[m.fr][m.fc]; boardLayout[m.fr][m.fc] = '';
             let val = minimax(boardLayout, depth - 1, -Infinity, Infinity, true);
-            boardLayout[m.fr][m.fc] = boardLayout[m.tr][m.tc];
-            boardLayout[m.tr][m.tc] = temp;
+            boardLayout[m.fr][m.fc] = boardLayout[m.tr][m.tc]; boardLayout[m.tr][m.tc] = t;
             if (val <= bestVal) { bestVal = val; bestMove = m; }
         });
     }
-
-    if (bestMove) executeMove(bestMove.fr, bestMove.fc, bestMove.tr, bestMove.tc);
+    executeMove(bestMove.fr, bestMove.fc, bestMove.tr, bestMove.tc);
     isBotThinking = false;
 }
 
 function minimax(layout, depth, alpha, beta, isMax) {
     if (depth === 0) return evaluateBoard(layout);
     let moves = [];
-    for (let r = 0; r < 8; r++) {
-        for (let c = 0; c < 8; c++) {
-            const p = layout[r][c];
-            if (p && (p === p.toUpperCase()) === isMax) {
-                getRawMoves(r, c, layout).forEach(m => moves.push({fr: r, fc: c, tr: m.r, tc: m.c}));
-            }
+    for (let r = 0; r < 8; r++) for (let c = 0; c < 8; c++) {
+        const p = layout[r][c];
+        if (p && (p === p.toUpperCase()) === isMax) {
+            getRawMoves(r, c, layout).forEach(m => moves.push({fr: r, fc: c, tr: m.r, tc: m.c}));
         }
     }
-
     if (isMax) {
         let v = -Infinity;
         for (let m of moves) {
-            const t = layout[m.tr][m.tc];
-            layout[m.tr][m.tc] = layout[m.fr][m.fc]; layout[m.fr][m.fc] = '';
+            const t = layout[m.tr][m.tc]; layout[m.tr][m.tc] = layout[m.fr][m.fc]; layout[m.fr][m.fc] = '';
             v = Math.max(v, minimax(layout, depth - 1, alpha, beta, false));
             layout[m.fr][m.fc] = layout[m.tr][m.tc]; layout[m.tr][m.tc] = t;
             alpha = Math.max(alpha, v); if (beta <= alpha) break;
@@ -254,8 +266,7 @@ function minimax(layout, depth, alpha, beta, isMax) {
     } else {
         let v = Infinity;
         for (let m of moves) {
-            const t = layout[m.tr][m.tc];
-            layout[m.tr][m.tc] = layout[m.fr][m.fc]; layout[m.fr][m.fc] = '';
+            const t = layout[m.tr][m.tc]; layout[m.tr][m.tc] = layout[m.fr][m.fc]; layout[m.fr][m.fc] = '';
             v = Math.min(v, minimax(layout, depth - 1, alpha, beta, true));
             layout[m.fr][m.fc] = layout[m.tr][m.tc]; layout[m.tr][m.tc] = t;
             beta = Math.min(beta, v); if (beta <= alpha) break;
@@ -274,6 +285,4 @@ function evaluateBoard(l) {
 }
 
 function updateDiffLabel() { diffLabel.innerText = diffInput.value; }
-
-// Inicjalizacja przy pierwszym załadowaniu
 initGame();
