@@ -11,21 +11,31 @@ const piecesSymbols = {
 
 const pieceValues = { 'p': 10, 'n': 30, 'b': 30, 'r': 50, 'q': 90, 'k': 900, 'P': 10, 'N': 30, 'B': 30, 'R': 50, 'Q': 90, 'K': 900 };
 
-let boardLayout = [
-    ['r','n','b','q','k','b','n','r'],
-    ['p','p','p','p','p','p','p','p'],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['','','','','','','',''],
-    ['P','P','P','P','P','P','P','P'],
-    ['R','N','B','Q','K','B','N','R']
-];
-
+let boardLayout = [];
 let selectedSquare = null;
 let validMoves = [];
 let isWhiteTurn = true;
 let isBotThinking = false;
+
+// Funkcja startowa / resetująca
+function initGame() {
+    boardLayout = [
+        ['r','n','b','q','k','b','n','r'],
+        ['p','p','p','p','p','p','p','p'],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['','','','','','','',''],
+        ['P','P','P','P','P','P','P','P'],
+        ['R','N','B','Q','K','B','N','R']
+    ];
+    isWhiteTurn = true;
+    isBotThinking = false;
+    selectedSquare = null;
+    validMoves = [];
+    turnDisplay.innerText = "Białe";
+    createBoard();
+}
 
 function createBoard() {
     boardElement.innerHTML = '';
@@ -43,7 +53,6 @@ function createBoard() {
                 square.style.color = piece === piece.toUpperCase() ? "#fff" : "#000";
                 if (piece === piece.toUpperCase()) square.style.textShadow = "0 0 4px #000";
                 
-                // Wizualizacja szacha
                 if ((piece === 'K' && whiteInCheck) || (piece === 'k' && blackInCheck)) {
                     square.style.backgroundColor = "#e74c3c";
                 }
@@ -61,7 +70,6 @@ function createBoard() {
     }
 }
 
-// Sprawdza czy król danego koloru jest pod atakiem
 function isKingInCheck(layout, isWhite) {
     let kingPos = null;
     for (let r = 0; r < 8; r++) {
@@ -85,7 +93,6 @@ function isKingInCheck(layout, isWhite) {
     return false;
 }
 
-// Filtruje ruchy, zostawiając tylko te legalne (nie zostawiają króla w szachu)
 function getLegalMoves(r, c, layout) {
     const rawMoves = getRawMoves(r, c, layout);
     const piece = layout[r][c];
@@ -183,7 +190,6 @@ function executeMove(fromR, fromC, toR, toC) {
     createBoard();
 }
 
-// Baza dla Bota (Minimax)
 function makeBotMove() {
     const depth = parseInt(diffInput.value);
     let moves = [];
@@ -217,13 +223,12 @@ function makeBotMove() {
         });
     }
 
-    executeMove(bestMove.fr, bestMove.fc, bestMove.tr, bestMove.tc);
+    if (bestMove) executeMove(bestMove.fr, bestMove.fc, bestMove.tr, bestMove.tc);
     isBotThinking = false;
 }
 
 function minimax(layout, depth, alpha, beta, isMax) {
     if (depth === 0) return evaluateBoard(layout);
-    
     let moves = [];
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
@@ -267,6 +272,6 @@ function evaluateBoard(l) {
 }
 
 function updateDiffLabel() { diffLabel.innerText = diffInput.value; }
-function resetGame() { location.reload(); }
 
-createBoard();
+// Inicjalizacja na start
+initGame();
