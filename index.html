@@ -3,13 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Chess AI - Final Fix</title>
+    <title>JS Chess AI - Endgame Screen</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="game-container">
         <h1>Szachy JS + Bot</h1>
-        <div id="board" class="board"></div>
+        
+        <div class="board-wrapper">
+            <div id="board" class="board"></div>
+            
+            <div id="endgame-overlay" class="overlay hidden">
+                <div class="overlay-content">
+                    <h2 id="endgame-title">SZACH-MAT!</h2>
+                    <p id="endgame-msg">Wygrywają Białe</p>
+                    <button class="btn-pve" onclick="initGame()">Zagraj ponownie</button>
+                </div>
+            </div>
+        </div>
+
         <div class="info-panel">
             <p id="game-status">Tura: <span id="turn-display">Białe</span></p>
             <div class="settings">
