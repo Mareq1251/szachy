@@ -17,7 +17,7 @@ let validMoves = [];
 let isWhiteTurn = true;
 let isBotThinking = false;
 
-// Funkcja startowa / resetująca
+// Funkcja Inicjalizująca - to ona odpowiada za RESET
 function initGame() {
     boardLayout = [
         ['r','n','b','q','k','b','n','r'],
@@ -33,8 +33,9 @@ function initGame() {
     isBotThinking = false;
     selectedSquare = null;
     validMoves = [];
-    turnDisplay.innerText = "Białe";
+    if(turnDisplay) turnDisplay.innerText = "Białe";
     createBoard();
+    console.log("Gra zresetowana. Tryb:", gameModeSelect.value);
 }
 
 function createBoard() {
@@ -191,6 +192,7 @@ function executeMove(fromR, fromC, toR, toC) {
 }
 
 function makeBotMove() {
+    if (isWhiteTurn) return; // Zabezpieczenie przed ruchem bota w turze gracza
     const depth = parseInt(diffInput.value);
     let moves = [];
     for (let r = 0; r < 8; r++) {
@@ -273,5 +275,5 @@ function evaluateBoard(l) {
 
 function updateDiffLabel() { diffLabel.innerText = diffInput.value; }
 
-// Inicjalizacja na start
+// Inicjalizacja przy pierwszym załadowaniu
 initGame();
