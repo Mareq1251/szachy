@@ -41,7 +41,6 @@ body {
 .black-sq { background-color: #779556; }
 .selected { background-color: #f1c40f !important; }
 
-/* Kropka dla pól ruchu */
 .highlight::after {
     content: '';
     width: 18px;
@@ -81,9 +80,3 @@ body {
 }
 
 .btn-reset:hover { background-color: #c0392b; }
-
-.check-alert {
-    color: #ff4d4d;
-    font-weight: bold;
-    text-transform: uppercase;
-}
