@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS Chess AI - Full Rules</title>
+    <title>JS Chess AI - Fixed Modes</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -14,7 +14,7 @@
             <p id="game-status">Tura: <span id="turn-display">Białe</span></p>
             <div class="settings">
                 <label>Tryb:</label>
-                <select id="game-mode" onchange="resetGame()">
+                <select id="game-mode" onchange="initGame()">
                     <option value="pvp">Gracz vs Gracz</option>
                     <option value="pve">Gracz vs Bot (Czarne)</option>
                 </select>
@@ -23,7 +23,7 @@
                 <input type="range" id="difficulty" min="1" max="5" value="3" onchange="updateDiffLabel()">
                 <span id="diff-label">3</span>
             </div>
-            <button class="btn-reset" onclick="resetGame()">Resetuj grę</button>
+            <button class="btn-reset" onclick="initGame()">Resetuj grę</button>
         </div>
     </div>
     <script src="script.js"></script>
