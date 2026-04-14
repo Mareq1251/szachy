@@ -1,0 +1,89 @@
+body {
+    background-color: #2c3e50;
+    color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(8, 65px);
+    grid-template-rows: repeat(8, 65px);
+    border: 8px solid #34495e;
+    border-radius: 4px;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+}
+
+.square {
+    width: 65px;
+    height: 65px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 45px;
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.white-sq { background-color: #ebecd0; }
+.black-sq { background-color: #779556; }
+.selected { background-color: #f1c40f !important; }
+
+/* Kropka dla pól ruchu */
+.highlight::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    position: absolute;
+}
+
+.capture { background-color: rgba(231, 76, 60, 0.6) !important; }
+
+.info-panel {
+    background: #34495e;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    min-width: 250px;
+}
+
+.settings {
+    margin: 15px 0;
+    text-align: left;
+    font-size: 14px;
+}
+
+.settings label { display: block; margin-bottom: 5px; }
+
+.btn-reset {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    width: 100%;
+}
+
+.btn-reset:hover { background-color: #c0392b; }
+
+.check-alert {
+    color: #ff4d4d;
+    font-weight: bold;
+    text-transform: uppercase;
+}
